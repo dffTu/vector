@@ -161,15 +161,72 @@ public:
     }
 
     Vector& operator=(std::initializer_list<ValueType> list) {
+        for (size_t i = 0; i < size_; ++i) {
+            ~begin_[i];
+        }
         size_ = list.size_;
+        size_t capacity_tmp = capacity_;
         ChangeCapacity();
-        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        if (capacity_tmp != capacity_) {
+            delete[] begin_;
+            begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        }
         size_t i = 0;
         for (const ValueType& value : list) {
             new(begin_ + i) ValueType(value);
             ++i;
         }
         return *this;
+    }
+
+    void Assign(size_t size, const ValueType& value) {
+        for (size_t i = 0; i < size_; ++i) {
+            ~begin_[i];
+        }
+        size_ = size;
+        size_t capacity_tmp = capacity_;
+        ChangeCapacity();
+        if (capacity_tmp != capacity_) {
+            delete[] begin_;
+            begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        }
+        for (size_t i = 0; i < size_; ++i) {
+            new(begin_ + i) ValueType(value);
+        }
+    }
+
+    void Assign(const Iterator& begin, const Iterator& end) {
+        for (size_t i = 0; i < size_; ++i) {
+            ~begin_[i];
+        }
+        size_ = end - begin;
+        size_t capacity_tmp = capacity_;
+        ChangeCapacity();
+        if (capacity_tmp != capacity_) {
+            delete[] begin_;
+            begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        }
+        for (size_t i = 0; i < size_; ++i) {
+            new(begin_ + i) ValueType(*(begin + i));
+        }
+    }
+
+    void Assign(std::initializer_list<ValueType> list) {
+        for (size_t i = 0; i < size_; ++i) {
+            ~begin_[i];
+        }
+        size_ = list.size();
+        size_t capacity_tmp = capacity_;
+        ChangeCapacity();
+        if (capacity_tmp != capacity_) {
+            delete[] begin_;
+            begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        }
+        size_t i = 0;
+        for (const ValueType& value : list) {
+            new(begin_ + i) ValueType(value);
+            ++i;
+        }
     }
 
     void ReallocateArray() {
