@@ -147,6 +147,31 @@ public:
         }
     }
 
+    Vector& operator=(const Vector& other) {
+        Vector temp_vector(other);
+        Swap(temp_vector);
+        return *this;
+    }
+
+    Vector& operator=(Vector&& other) {
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+        std::swap(begin_, other.begin_);
+        return *this;
+    }
+
+    Vector& operator=(std::initializer_list<ValueType> list) {
+        size_ = list.size_;
+        ChangeCapacity();
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        size_t i = 0;
+        for (const ValueType& value : list) {
+            new(begin_ + i) ValueType(value);
+            ++i;
+        }
+        return *this;
+    }
+
     void ReallocateArray() {
         if (begin_ == nullptr) {
             begin_ = new ValueType[capacity_];
@@ -171,12 +196,6 @@ public:
                 capacity_ *= 2;
             }
         }
-    }
-
-    Vector& operator=(const Vector& other) {
-        Vector temp_vector(other);
-        Swap(temp_vector);
-        return *this;
     }
 
     ~Vector() {
