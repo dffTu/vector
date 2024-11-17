@@ -95,9 +95,9 @@ public:
         if (begin_ == nullptr) {
             begin_ = new ValueType[capacity_];
         } else {
-            ValueType* ptr = new ValueType[capacity_];
+            ValueType* ptr = (ValueType*) calloc(capacity_, sizeof(ValueType));
             for (size_t i = 0; i < size_ - 1; ++i) {
-                ptr[i] = begin_[i];
+                new (ptr + i) ValueType(begin_[i]);
             }
             std::swap(ptr, begin_);
             delete[] ptr;
@@ -115,40 +115,40 @@ public:
                 capacity_ *= 2;
             }
         }
-        ReallocateArray();
     }
 
     explicit Vector(size_t size) {
         size_ = size;
         ChangeCapacity();
-        for (size_t i = 0; i < size; ++i) {
-            begin_[i] = 0;
-        }
+        begin_ = new ValueType[capacity_]{};
     }
 
     Vector(size_t size, const ValueType& value) {
         size_ = size;
         ChangeCapacity();
-        for (size_t i = 0; i < size; ++i) {
-            begin_[i] = value;
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        for (size_t i = 0; i < size_; ++i) {
+            new(begin_ + i) ValueType(value);
         }
     }
 
     Vector(std::initializer_list<ValueType> list) {
         size_ = list.size();
-        Reserve(size_);
+        ChangeCapacity();
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
         size_t i = 0;
         for (const ValueType& value : list) {
-            begin_[i] = value;
+            new(begin_ + i) ValueType(value);
             ++i;
         }
     }
 
     Vector(const Vector& other) {
         size_ = other.size_;
-        Reserve(size_);
+        ChangeCapacity();
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
         for (size_t i = 0; i < size_; ++i) {
-            begin_[i] = other.begin_[i];
+            new(begin_ + i) ValueType(other.begin_[i]);
         }
     }
 
@@ -228,7 +228,12 @@ public:
 
     void PushBack(const ValueType& new_element) {
         ++size_;
+        size_t capacity_tmp = capacity_;
         ChangeCapacity();
+        if (capacity_tmp != capacity_) {
+            ReallocateArray();
+        }
+
         begin_[size_ - 1] = new_element;
     }
 
