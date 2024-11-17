@@ -58,6 +58,12 @@ public:
             return temp;
         }
 
+        Iterator operator-(DifferenceType shift) {
+            Iterator temp = *this;
+            temp.pointer_ -= shift;
+            return temp;
+        }
+
         DifferenceType operator-(Iterator other) {
             return pointer_ - other.pointer_;
         }
@@ -91,6 +97,56 @@ public:
 
     Vector() = default;
 
+    explicit Vector(size_t size) {
+        size_ = size;
+        ChangeCapacity();
+        begin_ = new ValueType[capacity_]{};
+    }
+
+    Vector(size_t size, const ValueType& value) {
+        size_ = size;
+        ChangeCapacity();
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        for (size_t i = 0; i < size_; ++i) {
+            new(begin_ + i) ValueType(value);
+        }
+    }
+
+    Vector(const Iterator& begin, const Iterator& end) {
+        size_ = end - begin;
+        ChangeCapacity();
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        for (size_t i = 0; i < size_; ++i) {
+            new(begin_ + i) ValueType(*(begin + i));
+        }
+    }
+
+    Vector(const Vector& other) {
+        size_ = other.size_;
+        ChangeCapacity();
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        for (size_t i = 0; i < size_; ++i) {
+            new(begin_ + i) ValueType(other.begin_[i]);
+        }
+    }
+
+    Vector(Vector&& other) {
+        size = other.size_;
+        ChangeCapacity();
+        std::swap(begin_, other.begin_);
+    }
+
+    Vector(std::initializer_list<ValueType> list) {
+        size_ = list.size();
+        ChangeCapacity();
+        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
+        size_t i = 0;
+        for (const ValueType& value : list) {
+            new(begin_ + i) ValueType(value);
+            ++i;
+        }
+    }
+
     void ReallocateArray() {
         if (begin_ == nullptr) {
             begin_ = new ValueType[capacity_];
@@ -114,41 +170,6 @@ public:
             } else {
                 capacity_ *= 2;
             }
-        }
-    }
-
-    explicit Vector(size_t size) {
-        size_ = size;
-        ChangeCapacity();
-        begin_ = new ValueType[capacity_]{};
-    }
-
-    Vector(size_t size, const ValueType& value) {
-        size_ = size;
-        ChangeCapacity();
-        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
-        for (size_t i = 0; i < size_; ++i) {
-            new(begin_ + i) ValueType(value);
-        }
-    }
-
-    Vector(std::initializer_list<ValueType> list) {
-        size_ = list.size();
-        ChangeCapacity();
-        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
-        size_t i = 0;
-        for (const ValueType& value : list) {
-            new(begin_ + i) ValueType(value);
-            ++i;
-        }
-    }
-
-    Vector(const Vector& other) {
-        size_ = other.size_;
-        ChangeCapacity();
-        begin_ = (ValueType*) calloc(capacity_, sizeof(ValueType));
-        for (size_t i = 0; i < size_; ++i) {
-            new(begin_ + i) ValueType(other.begin_[i]);
         }
     }
 
